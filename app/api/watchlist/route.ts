@@ -3,11 +3,18 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { resolveCardId } from "@/lib/price-source";
 import { SWU_SETS } from "@/lib/sets";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) return NextResponse.json([]);
+
   const db = supabaseAdmin();
+  const { data: { user } } = await db.auth.getUser(authHeader.replace("Bearer ", ""));
+  if (!user) return NextResponse.json([]);
+
   const { data, error } = await db
     .from("watchlist")
     .select("*")
+    .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

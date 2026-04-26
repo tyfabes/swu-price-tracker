@@ -132,8 +132,12 @@ export default function Home() {
   }, []);
 
   async function load() {
-    const res = await fetch("/api/watchlist");
-    setEntries(await res.json());
+    const { data: { session } } = await supabaseBrowser().auth.getSession();
+    const headers: HeadersInit = {};
+    if (session) headers["Authorization"] = `Bearer ${session.access_token}`;
+    const res = await fetch("/api/watchlist", { headers });
+    const json = await res.json();
+    setEntries(Array.isArray(json) ? json : []);
     setLoading(false);
   }
 
