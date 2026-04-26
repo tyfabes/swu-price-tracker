@@ -130,7 +130,7 @@ export default function Landing() {
             Start Tracking
           </Link>
           <Link
-            href="/app"
+            href="/app?signin=1"
             style={{
               display: "inline-block",
               padding: "14px 32px",

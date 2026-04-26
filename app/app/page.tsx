@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import { SWU_SETS } from "@/lib/sets";
@@ -111,6 +112,11 @@ export default function Home() {
 
   const [user, setUser] = useState<User | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("signin") === "1") setShowAuth(true);
+  }, [searchParams]);
 
   // Auth session management
   useEffect(() => {
