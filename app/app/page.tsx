@@ -266,6 +266,13 @@ export default function Home() {
 
           {/* Center: nav tabs */}
           <nav className="topbar-nav">
+            <Link
+              href="/"
+              className="nav-tab"
+              style={{ textDecoration: "none" }}
+            >
+              Home
+            </Link>
             {(["watchlist", "add"] as Tab[]).map((t) => (
               <button
                 key={t}
