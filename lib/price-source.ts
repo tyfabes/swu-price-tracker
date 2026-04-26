@@ -25,6 +25,57 @@ export async function resolveCardId(
   return { card_id: card.id, resolved_name: card.name };
 }
 
+// Fetches prices from TCGCSV (TCGPlayer data, updates daily ~20:00 UTC).
+// Fetches prices across all SWU sets and returns a map keyed by tcgplayer_id.
+export async function fetchPricesFromTCGCSV(
+  tcgplayerIds: number[]
+): Promise<Map<number, number | null>> {
+  const prices = new Map<number, number | null>();
+  if (tcgplayerIds.length === 0) return prices;
+
+  const idSet = new Set(tcgplayerIds);
+
+  const groupsRes = await fetch("https://tcgcsv.com/tcgplayer/79/groups");
+  if (!groupsRes.ok) {
+    console.error("TCGCSV: failed to fetch groups", groupsRes.status);
+    return prices;
+  }
+  const { results: groups } = await groupsRes.json() as { results: Array<{ groupId: number }> };
+
+  // Collect all rows per productId across all groups, then pick the best price.
+  const candidates = new Map<number, Array<{ subTypeName: string; lowPrice: number; marketPrice: number }>>();
+
+  for (const group of groups ?? []) {
+    const priceRes = await fetch(`https://tcgcsv.com/tcgplayer/79/${group.groupId}/prices`);
+    if (!priceRes.ok) continue;
+    const { results: rows } = await priceRes.json() as {
+      results: Array<{ productId: number; subTypeName: string; lowPrice: number; marketPrice: number }>;
+    };
+    for (const row of rows ?? []) {
+      if (!idSet.has(row.productId)) continue;
+      if (!candidates.has(row.productId)) candidates.set(row.productId, []);
+      candidates.get(row.productId)!.push(row);
+    }
+  }
+
+  for (const [productId, rows] of candidates) {
+    // Prefer Normal printing; fall back to any row with a non-zero price.
+    const sorted = [...rows].sort((a, b) => {
+      const aNormal = a.subTypeName === "Normal" ? 0 : 1;
+      const bNormal = b.subTypeName === "Normal" ? 0 : 1;
+      return aNormal - bNormal;
+    });
+    let picked: number | null = null;
+    for (const row of sorted) {
+      const p = row.lowPrice > 0 ? row.lowPrice : row.marketPrice > 0 ? row.marketPrice : null;
+      if (p !== null) { picked = p; break; }
+    }
+    prices.set(productId, picked);
+  }
+
+  return prices;
+}
+
 // Called by the cron job — fetches all cards in one batched request.
 export async function fetchPricesBatch(
   cardIds: string[]
