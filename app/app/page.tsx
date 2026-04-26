@@ -112,16 +112,20 @@ export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [showAuth, setShowAuth] = useState(false);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("signin") === "1") setShowAuth(true);
-  }, []);
-
   // Auth session management
   useEffect(() => {
     const sb = supabaseBrowser();
     sb.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      // Only open sign-in modal from ?signin=1 if there's no active session
+      if (!session) {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("signin") === "1") setShowAuth(true);
+      }
+      // Strip ?signin=1 from the URL so refreshing doesn't re-trigger it
+      if (window.location.search.includes("signin")) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
     });
     const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
