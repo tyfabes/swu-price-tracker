@@ -9,7 +9,7 @@ const features = [
       </svg>
     ),
     title: "Real-Time Prices",
-    body: "Prices pulled directly from TCGPlayer and refreshed hourly so you always know what cards are actually selling for.",
+    body: "Prices pulled directly from TCGPlayer and refreshed daily so you always know what cards are actually selling for.",
   },
   {
     icon: (
@@ -202,7 +202,7 @@ export default function Landing() {
         textAlign: "center",
       }}>
         <span style={{ fontSize: "11px", color: "var(--muted)" }}>
-          SWUtopia · Prices refreshed hourly
+          SWUtopia · Prices refreshed daily
         </span>
       </footer>
     </div>

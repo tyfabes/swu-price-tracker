@@ -536,7 +536,7 @@ export default function Home() {
       <footer className="site-footer">
         <div className="page-container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
           <span style={{ fontSize: "11px", color: "var(--muted)" }}>
-            SWUtopia · Prices refreshed hourly
+            SWUtopia · Prices refreshed daily
           </span>
           <span className="price" style={{ fontSize: "11px", color: "var(--muted)" }}>
             {entries.length} {entries.length === 1 ? "card" : "cards"} tracked
