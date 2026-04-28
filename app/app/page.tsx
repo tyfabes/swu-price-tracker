@@ -114,18 +114,18 @@ export default function Home() {
 
   // Auth session management
   useEffect(() => {
+    // Read and strip ?signin=1 immediately — before any async work — so
+    // the URL is clean by the time the user sees it.
+    const params = new URLSearchParams(window.location.search);
+    const openSignIn = params.get("signin") === "1";
+    if (openSignIn) {
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+
     const sb = supabaseBrowser();
     sb.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
-      // Only open sign-in modal from ?signin=1 if there's no active session
-      if (!session) {
-        const params = new URLSearchParams(window.location.search);
-        if (params.get("signin") === "1") setShowAuth(true);
-      }
-      // Strip ?signin=1 from the URL so refreshing doesn't re-trigger it
-      if (window.location.search.includes("signin")) {
-        window.history.replaceState({}, "", window.location.pathname);
-      }
+      if (!session && openSignIn) setShowAuth(true);
     });
     const { data: { subscription } } = sb.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
