@@ -69,7 +69,7 @@ export default function Landing() {
       }}>
 
         {/* Logo */}
-        <div style={{ marginBottom: "6px" }}>
+        <div style={{ overflow: "hidden", height: "170px", marginBottom: "6px" }}>
           <Logo height={220} />
         </div>
 
