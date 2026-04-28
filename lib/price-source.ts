@@ -35,7 +35,9 @@ export async function fetchPricesFromTCGCSV(
 
   const idSet = new Set(tcgplayerIds);
 
-  const groupsRes = await fetch("https://tcgcsv.com/tcgplayer/79/groups");
+  const tcgcsvHeaders = { "User-Agent": "SWUtopia/1.0 (swutopia.com)" };
+
+  const groupsRes = await fetch("https://tcgcsv.com/tcgplayer/79/groups", { headers: tcgcsvHeaders });
   if (!groupsRes.ok) {
     console.error("TCGCSV: failed to fetch groups", groupsRes.status);
     return prices;
@@ -46,7 +48,7 @@ export async function fetchPricesFromTCGCSV(
   const candidates = new Map<number, Array<{ subTypeName: string; lowPrice: number; marketPrice: number }>>();
 
   for (const group of groups ?? []) {
-    const priceRes = await fetch(`https://tcgcsv.com/tcgplayer/79/${group.groupId}/prices`);
+    const priceRes = await fetch(`https://tcgcsv.com/tcgplayer/79/${group.groupId}/prices`, { headers: tcgcsvHeaders });
     if (!priceRes.ok) continue;
     const { results: rows } = await priceRes.json() as {
       results: Array<{ productId: number; subTypeName: string; lowPrice: number; marketPrice: number }>;
