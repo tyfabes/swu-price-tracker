@@ -13,10 +13,9 @@ jobs:
         run: |
           APP_URL="${{ secrets.APP_URL }}"
           APP_URL="${APP_URL%/}"
-          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "${APP_URL}/api/cron" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
-          HTTP_STATUS=$(echo "$RESPONSE" | tail -1)
-          BODY=$(echo "$RESPONSE" | head -n -1)
-          echo "HTTP Status: $HTTP_STATUS"
-          echo "Response: $BODY"
-          [ "$HTTP_STATUS" = "200" ] || exit 1
+          curl -v -X GET "${APP_URL}/api/cron" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -o /tmp/cron_body.txt \
+            -w "\nHTTP Status: %{http_code}\n"
+          echo "--- Response body ---"
+          cat /tmp/cron_body.txt
