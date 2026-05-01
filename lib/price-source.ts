@@ -42,18 +42,35 @@ export async function fetchPricesFromTCGCSV(
     console.error("TCGCSV: failed to fetch groups", groupsRes.status);
     return prices;
   }
-  const { results: groups } = await groupsRes.json() as { results: Array<{ groupId: number }> };
+  let groups: Array<{ groupId: number }>;
+  try {
+    const data = await groupsRes.json() as { results: Array<{ groupId: number }> };
+    groups = data.results ?? [];
+  } catch {
+    console.error("TCGCSV: failed to parse groups response");
+    return prices;
+  }
 
   // Collect all rows per productId across all groups, then pick the best price.
   const candidates = new Map<number, Array<{ subTypeName: string; lowPrice: number; marketPrice: number }>>();
 
-  for (const group of groups ?? []) {
-    const priceRes = await fetch(`https://tcgcsv.com/tcgplayer/79/${group.groupId}/prices`, { headers: tcgcsvHeaders });
-    if (!priceRes.ok) continue;
-    const { results: rows } = await priceRes.json() as {
-      results: Array<{ productId: number; subTypeName: string; lowPrice: number; marketPrice: number }>;
-    };
-    for (const row of rows ?? []) {
+  const groupResults = await Promise.all(
+    groups.map(async (group) => {
+      try {
+        const priceRes = await fetch(`https://tcgcsv.com/tcgplayer/79/${group.groupId}/prices`, { headers: tcgcsvHeaders });
+        if (!priceRes.ok) return [];
+        const { results: rows } = await priceRes.json() as {
+          results: Array<{ productId: number; subTypeName: string; lowPrice: number; marketPrice: number }>;
+        };
+        return rows ?? [];
+      } catch {
+        return [];
+      }
+    })
+  );
+
+  for (const rows of groupResults) {
+    for (const row of rows) {
       if (!idSet.has(row.productId)) continue;
       if (!candidates.has(row.productId)) candidates.set(row.productId, []);
       candidates.get(row.productId)!.push(row);

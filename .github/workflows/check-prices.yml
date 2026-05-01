@@ -11,5 +11,12 @@ jobs:
     steps:
       - name: Trigger price check
         run: |
-          curl -f -X GET "${{ secrets.APP_URL }}/api/cron" \
-            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          APP_URL="${{ secrets.APP_URL }}"
+          APP_URL="${APP_URL%/}"
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET "${APP_URL}/api/cron" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}")
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $BODY"
+          [ "$HTTP_STATUS" = "200" ] || exit 1
