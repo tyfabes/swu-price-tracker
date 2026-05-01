@@ -16,6 +16,6 @@ jobs:
           curl -v -X GET "${APP_URL}/api/cron" \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             -o /tmp/cron_body.txt \
-            -w "\nHTTP Status: %{http_code}\n"
+            -w "\nHTTP Status: %{http_code}\n" 2>&1
           echo "--- Response body ---"
           cat /tmp/cron_body.txt
